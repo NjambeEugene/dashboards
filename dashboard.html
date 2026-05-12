@@ -1,0 +1,218 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.dash { padding: 1rem 0; }
+.section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; color: var(--color-text-tertiary); text-transform: uppercase; margin-bottom: 8px; }
+.metric-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.metric-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+.pairs-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.pair-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; }
+.pair-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.pair-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.badge { font-size: 11px; padding: 3px 8px; border-radius: var(--border-radius-md); font-weight: 500; }
+.badge-long { background: #EAF3DE; color: #27500A; }
+.badge-short { background: #FCEBEB; color: #791F1F; }
+.badge-neutral { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+.pair-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); padding: 3px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.pair-row:last-child { border-bottom: none; }
+.pair-row span:last-child { color: var(--color-text-primary); font-weight: 500; }
+.bar-wrap { height: 6px; background: var(--color-background-secondary); border-radius: 3px; margin: 10px 0 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.entry-section { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 1.5rem; }
+.entry-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-top: 12px; }
+.entry-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+.entry-box-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+.entry-box-val { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 1.5rem; }
+.ctrl-group { display: flex; flex-direction: column; gap: 4px; }
+.ctrl-group label { font-size: 11px; color: var(--color-text-secondary); }
+.ctrl-group select, .ctrl-group input { font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+.run-btn { padding: 7px 18px; font-size: 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-primary); cursor: pointer; }
+.run-btn:hover { background: var(--color-background-secondary); }
+.session-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
+.sess-dot { width: 8px; height: 8px; border-radius: 50%; }
+.sess-active { background: #639922; }
+.sess-inactive { background: var(--color-border-secondary); }
+.sess-label { font-size: 12px; color: var(--color-text-secondary); }
+.trade-log { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; }
+.log-header { display: grid; grid-template-columns: 80px 1fr 80px 80px 80px; gap: 8px; padding: 8px 14px; background: var(--color-background-secondary); font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+.log-row { display: grid; grid-template-columns: 80px 1fr 80px 80px 80px; gap: 8px; padding: 9px 14px; font-size: 12px; border-top: 0.5px solid var(--color-border-tertiary); align-items: center; }
+.win { color: #3B6D11; }
+.loss { color: #A32D2D; }
+</style>
+
+<div class="dash">
+  <div class="section-label">Session status</div>
+  <div class="session-bar" id="sessBar">
+    <div class="sess-dot" id="sessDot"></div>
+    <span class="sess-label" id="sessLabel"></span>
+    <span class="sess-label" style="margin-left: auto;" id="utcClock"></span>
+  </div>
+
+  <div class="section-label">Summary</div>
+  <div class="metric-row">
+    <div class="metric"><div class="metric-label">Active pairs</div><div class="metric-val">4</div><div class="metric-sub">USD · AUD · CHF · NZD</div></div>
+    <div class="metric"><div class="metric-label">Window</div><div class="metric-val">04–06</div><div class="metric-sub">UTC+1 daily</div></div>
+    <div class="metric"><div class="metric-label">Risk per trade</div><div class="metric-val" id="riskPct">1%</div><div class="metric-sub">of account</div></div>
+    <div class="metric"><div class="metric-label">R:R target</div><div class="metric-val" id="rrDisplay">1 : 2</div><div class="metric-sub">min ratio</div></div>
+  </div>
+
+  <div class="section-label">Pair scanner</div>
+  <div class="pairs-grid" id="pairsGrid"></div>
+
+  <div class="section-label">Risk calculator</div>
+  <div class="controls">
+    <div class="ctrl-group">
+      <label>Pair</label>
+      <select id="pairSel"><option>USD/JPY</option><option>AUD/JPY</option><option>CHF/JPY</option><option>NZD/JPY</option></select>
+    </div>
+    <div class="ctrl-group">
+      <label>Account size ($)</label>
+      <input type="number" id="accSize" value="10000" style="width:110px;" />
+    </div>
+    <div class="ctrl-group">
+      <label>Risk %</label>
+      <input type="number" id="riskInput" value="1" min="0.5" max="3" step="0.5" style="width:70px;" />
+    </div>
+    <div class="ctrl-group">
+      <label>Stop (pips)</label>
+      <input type="number" id="stopPips" value="15" style="width:80px;" />
+    </div>
+    <div class="ctrl-group">
+      <label>R:R</label>
+      <input type="number" id="rrInput" value="2" min="1" max="5" step="0.5" style="width:70px;" />
+    </div>
+    <button class="run-btn" onclick="calcRisk()">Calculate ↗</button>
+  </div>
+  <div class="entry-section">
+    <div style="font-size:13px; font-weight:500; color:var(--color-text-secondary);">Trade parameters</div>
+    <div class="entry-grid">
+      <div class="entry-box"><div class="entry-box-label">Dollar risk</div><div class="entry-box-val" id="dollarRisk">$100</div></div>
+      <div class="entry-box"><div class="entry-box-label">Position size (lots)</div><div class="entry-box-val" id="lotSize">0.67</div></div>
+      <div class="entry-box"><div class="entry-box-label">Stop loss</div><div class="entry-box-val" id="slOut">15 pips</div></div>
+      <div class="entry-box"><div class="entry-box-label">Take profit</div><div class="entry-box-val" id="tpOut">30 pips</div></div>
+      <div class="entry-box"><div class="entry-box-label">Max reward</div><div class="entry-box-val" id="rewardOut">$200</div></div>
+      <div class="entry-box"><div class="entry-box-label">Breakeven win rate</div><div class="entry-box-val" id="beRate">33%</div></div>
+    </div>
+  </div>
+
+  <div class="section-label">Trade log</div>
+  <div class="trade-log">
+    <div class="log-header"><span>Pair</span><span>Direction</span><span>Result</span><span>Pips</span><span>R</span></div>
+    <div id="logBody"></div>
+  </div>
+  <div style="margin-top: 10px; display:flex; gap:8px;">
+    <button class="run-btn" onclick="addTrade('win')">+ Win</button>
+    <button class="run-btn" onclick="addTrade('loss')">+ Loss</button>
+    <button class="run-btn" onclick="clearLog()">Clear log</button>
+    <button class="run-btn" onclick="sendPrompt('Analyze my trade log and suggest improvements to my breakout strategy')">Analyze log ↗</button>
+  </div>
+</div>
+
+<script>
+const PAIRS = [
+  { name:'USD/JPY', vol:'High', session:'Tokyo+London', trend:'Bullish', strength:72, dir:'long' },
+  { name:'AUD/JPY', vol:'High', session:'Tokyo', trend:'Bearish', strength:61, dir:'short' },
+  { name:'CHF/JPY', vol:'Med', session:'Early EU', trend:'Neutral', strength:48, dir:'neutral' },
+  { name:'NZD/JPY', vol:'Med', session:'Tokyo', trend:'Bullish', strength:55, dir:'long' },
+];
+
+function renderPairs() {
+  const g = document.getElementById('pairsGrid');
+  g.innerHTML = PAIRS.map(p => {
+    const badgeClass = p.dir === 'long' ? 'badge-long' : p.dir === 'short' ? 'badge-short' : 'badge-neutral';
+    const badgeText = p.dir === 'long' ? 'Breakout long' : p.dir === 'short' ? 'Breakout short' : 'Wait';
+    const barColor = p.dir === 'long' ? '#639922' : p.dir === 'short' ? '#A32D2D' : '#888780';
+    return `<div class="pair-card">
+      <div class="pair-header">
+        <span class="pair-name">${p.name}</span>
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="pair-row"><span>Volatility</span><span>${p.vol}</span></div>
+      <div class="pair-row"><span>Active session</span><span>${p.session}</span></div>
+      <div class="pair-row"><span>Trend bias</span><span>${p.trend}</span></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${p.strength}%;background:${barColor};"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-tertiary);">
+        <span>Signal strength</span><span>${p.strength}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcRisk() {
+  const acc = parseFloat(document.getElementById('accSize').value) || 10000;
+  const rPct = parseFloat(document.getElementById('riskInput').value) || 1;
+  const stop = parseFloat(document.getElementById('stopPips').value) || 15;
+  const rr = parseFloat(document.getElementById('rrInput').value) || 2;
+  const dollar = acc * rPct / 100;
+  const pipVal = 9.3;
+  const lots = (dollar / (stop * pipVal));
+  const tp = stop * rr;
+  const reward = dollar * rr;
+  const be = Math.round(100 / (1 + rr));
+  document.getElementById('dollarRisk').textContent = '$' + dollar.toFixed(0);
+  document.getElementById('lotSize').textContent = lots.toFixed(2);
+  document.getElementById('slOut').textContent = stop + ' pips';
+  document.getElementById('tpOut').textContent = tp.toFixed(0) + ' pips';
+  document.getElementById('rewardOut').textContent = '$' + reward.toFixed(0);
+  document.getElementById('beRate').textContent = be + '%';
+  document.getElementById('riskPct').textContent = rPct + '%';
+  document.getElementById('rrDisplay').textContent = '1 : ' + rr;
+}
+
+let trades = [];
+function addTrade(result) {
+  const pair = document.getElementById('pairSel').value;
+  const stop = parseFloat(document.getElementById('stopPips').value) || 15;
+  const rr = parseFloat(document.getElementById('rrInput').value) || 2;
+  const pips = result === 'win' ? +(stop * rr).toFixed(1) : -stop;
+  const r = result === 'win' ? '+' + rr + 'R' : '-1R';
+  trades.unshift({ pair, result, pips, r });
+  renderLog();
+}
+
+function renderLog() {
+  const body = document.getElementById('logBody');
+  if (trades.length === 0) { body.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--color-text-tertiary);">No trades logged yet.</div>'; return; }
+  body.innerHTML = trades.map(t => `<div class="log-row">
+    <span>${t.pair}</span>
+    <span>${t.result === 'win' ? '↑ Long/Short' : '↓ Long/Short'}</span>
+    <span class="${t.result === 'win' ? 'win' : 'loss'}">${t.result === 'win' ? 'Win' : 'Loss'}</span>
+    <span class="${t.result === 'win' ? 'win' : 'loss'}">${t.pips > 0 ? '+' : ''}${t.pips}</span>
+    <span class="${t.result === 'win' ? 'win' : 'loss'}">${t.r}</span>
+  </div>`).join('');
+}
+
+function clearLog() { trades = []; renderLog(); }
+
+function updateClock() {
+  const now = new Date();
+  const utc1h = now.getUTCHours() + 1;
+  const m = now.getUTCMinutes();
+  const h = utc1h % 24;
+  const inWindow = h >= 4 && h < 6;
+  document.getElementById('utcClock').textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ' UTC+1';
+  const dot = document.getElementById('sessDot');
+  const label = document.getElementById('sessLabel');
+  if (inWindow) {
+    dot.className = 'sess-dot sess-active';
+    label.textContent = 'Session ACTIVE — breakout window open';
+    label.style.color = 'var(--color-text-success)';
+  } else {
+    dot.className = 'sess-dot sess-inactive';
+    const next = h < 4 ? 4 - h : 28 - h;
+    label.textContent = `Session closed — opens in ~${next}h`;
+    label.style.color = 'var(--color-text-secondary)';
+  }
+}
+
+renderPairs();
+calcRisk();
+renderLog();
+updateClock();
+setInterval(updateClock, 30000);
+</script>
